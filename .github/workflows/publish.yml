@@ -1,0 +1,46 @@
+name: Publish (Maven Central)
+
+# Publishes the Android artifacts to Maven Central on a version tag (or manually):
+#   - aksara-core     -> JAR  (io.github.iqbaladr:aksara-core)
+#   - aksara-compose  -> AAR  (io.github.iqbaladr:aksara-compose)
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   MAVEN_CENTRAL_USERNAME     Sonatype Central Portal token username
+#   MAVEN_CENTRAL_PASSWORD     Sonatype Central Portal token password
+#   SIGNING_KEY                ASCII-armored GPG private key (full block)
+#   SIGNING_KEY_PASSWORD       passphrase for that key
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Needed to build the aksara-compose AAR (com.android.library).
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Publish (core JAR + compose AAR)
+        run: ./gradlew publishAndReleaseToMavenCentral -PwithAndroid --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}

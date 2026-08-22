@@ -30,8 +30,8 @@ imperative XIB/`app:locKey` binding registry + signed payloads, **v3** reach.
 
 ## Install
 
-Supported via **Swift Package Manager**, **CocoaPods**, and **Carthage** — see the
-full [installation guide](docs/installation.md). The quickest (SPM):
+**iOS** — Swift Package Manager, CocoaPods, or Carthage (see the full
+[installation guide](docs/installation.md)). Quickest (SPM):
 
 ```swift
 // Package.swift
@@ -40,6 +40,15 @@ targets: [ .target(name: "App", dependencies: [
     .product(name: "Aksara", package: "aksara"),
     .product(name: "AksaraSwiftUI", package: "aksara"),
 ]) ]
+```
+
+**Android** — Maven Central (see [android/README.md](android/README.md)):
+
+```kotlin
+dependencies {
+    implementation("io.github.iqbaladr:aksara-core:0.1.0")
+    implementation("io.github.iqbaladr:aksara-compose:0.1.0") // optional Compose bindings
+}
 ```
 
 ## 60-second quickstart (iOS)

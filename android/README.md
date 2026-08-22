@@ -19,6 +19,21 @@ Same method names, same behavior, mirrored tests.
 - Gradle wrapper included (`./gradlew`)
 - For `aksara-compose`: Android SDK + `compileSdk 34`, `minSdk 24`
 
+## Install (Gradle)
+
+Published to **Maven Central** as `io.github.iqbaladr`:
+
+```kotlin
+dependencies {
+    implementation("io.github.iqbaladr:aksara-core:0.1.0")       // core runtime (JAR)
+    implementation("io.github.iqbaladr:aksara-compose:0.1.0")    // Compose bindings (AAR), optional
+}
+```
+
+> `aksara-core` is a pure-Kotlin/JVM library, so it ships as a **JAR** (no Android
+> resources/manifest — Android apps consume it fine). `aksara-compose` depends on
+> Jetpack Compose and ships as an **AAR**.
+
 ## Build & test
 
 ```bash
@@ -27,8 +42,36 @@ cd android
 ./gradlew :aksara-core:build
 ```
 
-To enable the Compose module, install an Android SDK and uncomment
-`include(":aksara-compose")` in [settings.gradle.kts](settings.gradle.kts).
+The Compose module needs an Android SDK, so it's excluded from the default build.
+Opt in with `-PwithAndroid` (with an SDK installed):
+
+```bash
+./gradlew -PwithAndroid :aksara-compose:assembleRelease   # produces the AAR
+```
+
+## Publishing to Maven Central (maintainers)
+
+Publishing uses the [Vanniktech maven-publish plugin](https://github.com/vanniktech/gradle-maven-publish-plugin)
+(handles the core JAR and the compose AAR uniformly, plus sources/javadoc jars and
+GPG signing). It runs automatically on a `v*` tag via
+[`.github/workflows/publish.yml`](../.github/workflows/publish.yml).
+
+**One-time setup:**
+1. Create a **Sonatype Central Portal** account and verify the `io.github.iqbaladr`
+   namespace (GitHub-verifiable).
+2. Generate a **GPG key** and publish it to a keyserver.
+3. Add these **repository secrets**:
+   - `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD` — Central Portal token.
+   - `SIGNING_KEY` — ASCII-armored GPG private key; `SIGNING_KEY_PASSWORD` — its passphrase.
+
+**Release:** bump `VERSION_NAME` in [gradle.properties](gradle.properties), tag
+`vX.Y.Z`, and push — or run the workflow manually. Locally:
+
+```bash
+./gradlew publishAndReleaseToMavenCentral -PwithAndroid
+```
+
+Keep the version aligned with the iOS release.
 
 ## Mirrored public API
 
