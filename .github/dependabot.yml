@@ -1,18 +1,26 @@
 version: 2
 updates:
-  # GitHub Actions used by the workflows above.
+  # GitHub Actions used by the workflows above. Batched into a single PR per run.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     labels: ["ci", "dependencies"]
+    groups:
+      github-actions:
+        patterns: ["*"]
 
-  # Kotlin / Gradle dependencies (coroutines, serialization, JUnit, AGP, Compose).
+  # Gradle / Kotlin dependencies (coroutines, serialization, Kotlin & AGP plugins,
+  # Gradle wrapper). Grouped so the Kotlin `jvm` + `serialization` plugins — which
+  # must move together — land in one PR.
   - package-ecosystem: gradle
     directory: /android
     schedule:
       interval: weekly
-    labels: ["kotlin", "dependencies"]
+    labels: ["android", "dependencies"]
+    groups:
+      gradle:
+        patterns: ["*"]
 
   # SwiftPM dependencies (root Package.swift). No external deps today, but this keeps
   # any future ones current.
@@ -20,4 +28,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    labels: ["swift", "dependencies"]
+    labels: ["ios", "dependencies"]
+    groups:
+      swift:
+        patterns: ["*"]
