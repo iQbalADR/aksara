@@ -2,7 +2,7 @@ import Foundation
 
 /// Startup configuration for the `Localizer`.
 ///
-/// Mirrors the Kotlin `Config` (see `kotlin/`). Keep the two in sync — any field
+/// Mirrors the Kotlin `Config` (see `android/`). Keep the two in sync — any field
 /// added here is a PR obligation to add on the other platform.
 public struct LocalizationConfig {
     /// Language shown first. Its bundled JSON is loaded **synchronously** at startup.

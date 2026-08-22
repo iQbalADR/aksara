@@ -25,13 +25,13 @@ Pod::Spec.new do |s|
   s.default_subspec = 'Core'
 
   s.subspec 'Core' do |core|
-    core.source_files = 'swift/Sources/Aksara/**/*.swift'
+    core.source_files = 'ios/Sources/Aksara/**/*.swift'
     core.frameworks   = 'Foundation', 'Security', 'CryptoKit'
   end
 
   # SwiftUI live-binding layer (LocalizationManager + LocText).
   s.subspec 'SwiftUI' do |ui|
-    ui.source_files = 'swift/Sources/AksaraSwiftUI/**/*.swift'
+    ui.source_files = 'ios/Sources/AksaraSwiftUI/**/*.swift'
     ui.dependency 'Aksara/Core'
     ui.frameworks   = 'SwiftUI'
   end

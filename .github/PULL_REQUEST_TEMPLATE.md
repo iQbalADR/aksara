@@ -11,11 +11,11 @@ Closes #
 
 - [ ] No public API change **— or —** the twin is included/linked: <!-- link -->
 - [ ] Swift and Kotlin method names & behavior match
-- [ ] Tests are mirrored across `swift/Tests` and `kotlin/aksara-core/src/test`
+- [ ] Tests are mirrored across `ios/Tests` and `android/aksara-core/src/test`
 
 ## Checks
 
-- [ ] `swift test` passes (if `swift/` touched)
-- [ ] `./gradlew :aksara-core:test` passes (if `kotlin/` touched)
+- [ ] `swift test` passes (if `ios/` touched)
+- [ ] `./gradlew :aksara-core:test` passes (if `android/` touched)
 - [ ] Docs updated if behavior/API changed
 - [ ] Commits are authored by me only (no AI/tool attribution or `Co-Authored-By` bot trailers)

@@ -3,7 +3,7 @@ import Foundation
 /// The runtime entry point. Loads translations, resolves keys in O(1), and swaps in
 /// new tables atomically for language switches and OTA updates.
 ///
-/// Public API is mirrored 1:1 with the Kotlin `Localizer` — see `kotlin/`.
+/// Public API is mirrored 1:1 with the Kotlin `Localizer` — see `android/`.
 ///
 /// Threading: `t(...)` is synchronous and safe to call from the main thread (it's a
 /// brief lock + one dictionary lookup). Bundled languages load synchronously (they're

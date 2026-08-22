@@ -1,6 +1,6 @@
 # Aksara — Android / Kotlin
 
-The Kotlin runtime, mirrored 1:1 with the Swift library in [`../swift/`](../swift/).
+The Kotlin runtime, mirrored 1:1 with the Swift library in [`../ios/`](../ios/).
 Same method names, same behavior, mirrored tests.
 
 | Module | Status | Notes |
@@ -22,7 +22,7 @@ Same method names, same behavior, mirrored tests.
 ## Build & test
 
 ```bash
-cd kotlin
+cd android
 ./gradlew :aksara-core:test        # runs the 47 JVM unit tests
 ./gradlew :aksara-core:build
 ```
@@ -32,7 +32,7 @@ To enable the Compose module, install an Android SDK and uncomment
 
 ## Mirrored public API
 
-Same method names and behavior as Swift (see `../swift/Sources/Aksara/`).
+Same method names and behavior as Swift (see `../ios/Sources/Aksara/`).
 
 ```kotlin
 val loc = Localizer.instance

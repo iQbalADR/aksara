@@ -29,7 +29,7 @@ These are self-contained and well-scoped — perfect `good first issue` material
 
 ## Setup
 
-**Swift** (the `Package.swift` manifest is at the repo root; sources live under `swift/`)
+**Swift** (the `Package.swift` manifest is at the repo root; sources live under `ios/`)
 ```bash
 swift build
 swift test        # must be green before you open a PR
@@ -38,7 +38,7 @@ swift test        # must be green before you open a PR
 See [docs/installation.md](docs/installation.md) for how the package is consumed via
 SPM / CocoaPods / Carthage.
 
-**Kotlin** — see [kotlin/README.md](kotlin/README.md) (mirror in progress).
+**Kotlin** — see [android/README.md](android/README.md) (mirror in progress).
 
 ## Ground rules
 

@@ -20,8 +20,8 @@ iOS and Android stay in sync by construction.
 
 | Platform | Package | v1 (core + OTA + declarative UI) |
 |----------|---------|----------------------------------|
-| iOS / Swift | [`swift/`](swift/) | ✅ core + OTA + SwiftUI — `swift test` green (47 tests) |
-| Android / Kotlin | [`kotlin/`](kotlin/) | ✅ core + OTA — `./gradlew :aksara-core:test` green (47 tests); Compose layer source provided (needs Android SDK) |
+| iOS / Swift | [`ios/`](ios/) | ✅ core + OTA + SwiftUI — `swift test` green (47 tests) |
+| Android / Kotlin | [`android/`](android/) | ✅ core + OTA — `./gradlew :aksara-core:test` green (47 tests); Compose layer source provided (needs Android SDK) |
 
 The two libraries are mirrored 1:1 — same API, same behavior, **47 matching tests each**.
 
@@ -95,10 +95,10 @@ automatically on every language switch or OTA swap — no manual refresh.
 ```
 core-spec (docs/format.md — documented format + behavior, language-agnostic)
    │
-   ├── swift/   Localizer, Flattener, PluralResolver, Interpolator,
+   ├── ios/   Localizer, Flattener, PluralResolver, Interpolator,
    │            SchemaValidator, DiskCache, OTAUpdater  (+ AksaraSwiftUI)
    │
-   └── kotlin/  mirror of the above                     (+ Compose)
+   └── android/  mirror of the above                     (+ Compose)
 ```
 
 Modular per concern so a contributor can touch one thing: `PluralResolver`
@@ -108,7 +108,7 @@ binding class per UI widget. See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Building & testing (iOS)
 
 The `Package.swift` manifest is at the repo root; the Swift sources live under
-[`swift/`](swift/).
+[`ios/`](ios/).
 
 ```bash
 swift build
@@ -123,12 +123,12 @@ swift test
 The Kotlin core is a pure JVM library (no Android SDK needed to test it):
 
 ```bash
-cd kotlin
+cd android
 ./gradlew :aksara-core:test    # 47 JVM unit tests, mirror of the Swift suite
 ```
 
 The Compose UI layer (`aksara-compose`) needs an Android SDK — see
-[kotlin/README.md](kotlin/README.md).
+[android/README.md](android/README.md).
 
 ## Security
 

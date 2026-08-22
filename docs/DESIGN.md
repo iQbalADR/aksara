@@ -199,10 +199,10 @@ loc.checkForUpdates()
 ```
 core-spec (documented format + behavior, language-agnostic)
    │
-   ├── swift/   Localizer, Loader, PluralResolver, Interpolator,
+   ├── ios/   Localizer, Loader, PluralResolver, Interpolator,
    │            BindingRegistry, OTAUpdater  (+ SwiftUI + UIKit modules)
    │
-   └── kotlin/  mirror of the above         (+ Compose + View modules)
+   └── android/  mirror of the above         (+ Compose + View modules)
 ```
 
 - **Modular per concern** so a contributor can touch one thing:

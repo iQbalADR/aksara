@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: kotlin
+        working-directory: android
     steps:
       - uses: actions/checkout@v4
 

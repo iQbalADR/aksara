@@ -3,8 +3,8 @@ import PackageDescription
 import Foundation
 
 // The manifest lives at the repository root (required for remote SwiftPM
-// consumption) while the Swift sources stay under `swift/` per the cross-platform
-// layout. Sibling `kotlin/` holds the Android mirror.
+// consumption) while the Swift sources stay under `ios/` per the cross-platform
+// layout. Sibling `android/` holds the Android mirror.
 //
 // Package/product names are `Aksara` / `AksaraSwiftUI`. Confirm the name is free on
 // your GitHub org and Swift Package Index before the first public release.
@@ -35,17 +35,17 @@ let package = Package(
     targets: [
         .target(
             name: "Aksara",
-            path: "swift/Sources/Aksara"
+            path: "ios/Sources/Aksara"
         ),
         .target(
             name: "AksaraSwiftUI",
             dependencies: ["Aksara"],
-            path: "swift/Sources/AksaraSwiftUI"
+            path: "ios/Sources/AksaraSwiftUI"
         ),
         .testTarget(
             name: "AksaraTests",
             dependencies: ["Aksara"],
-            path: "swift/Tests/AksaraTests",
+            path: "ios/Tests/AksaraTests",
             resources: [.process("Resources")]
         ),
     ]

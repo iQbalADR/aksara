@@ -9,7 +9,7 @@ updates:
 
   # Kotlin / Gradle dependencies (coroutines, serialization, JUnit, AGP, Compose).
   - package-ecosystem: gradle
-    directory: /kotlin
+    directory: /android
     schedule:
       interval: weekly
     labels: ["kotlin", "dependencies"]
