@@ -1,0 +1,26 @@
+name: Release artifacts
+
+# Builds the distributable XCFrameworks on a version tag (or manually) and uploads
+# them as build artifacts. Attach them to the GitHub Release so the Carthage
+# `github "iQbalADR/aksara"` route can resolve prebuilt binaries.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  xcframework:
+    name: Build XCFrameworks
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build XCFrameworks
+        run: ./scripts/build-xcframework.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcframeworks
+          path: build/xcframeworks/*.xcframework.zip
+          if-no-files-found: error

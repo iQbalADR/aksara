@@ -1,0 +1,43 @@
+name: Bug report
+description: Something isn't working as documented.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - iOS / Swift
+        - Android / Kotlin
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Aksara version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal code and, if relevant, the bundle JSON.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version, Xcode / JDK version, dependency manager (SPM/CocoaPods/Carthage/Gradle).
+    validations:
+      required: false

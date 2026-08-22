@@ -1,0 +1,22 @@
+# SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+
+# XCFramework build output (scripts/build-xcframework.sh)
+build/
+
+# Xcode
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+
+# CocoaPods (consumer side)
+Pods/
+
+# Carthage (consumer side)
+Carthage/Build/
+Carthage/Checkouts/
+
+# macOS
+.DS_Store

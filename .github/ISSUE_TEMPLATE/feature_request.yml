@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an addition that fits the project scope.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that Aksara doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API / behavior
+      description: Sketch the API. Remember it must be mirrorable on both Swift and Kotlin.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      description: "v1 is native iOS/Android runtime only. Out of scope: web/JS, RN/Flutter/KMP UI, backend, machine translation, editor GUIs."
+      options:
+        - label: This is in scope (a native iOS/Android runtime concern).
+          required: true

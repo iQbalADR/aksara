@@ -1,0 +1,16 @@
+{
+  "_version": "1.0.0",
+  "common": {
+    "welcome": "Welcome, {{name}}!",
+    "greeting": "Hello {{ name }}, you have {{unread}} messages",
+    "items": {
+      "one": "{{count}} item",
+      "other": "{{count}} items"
+    },
+    "english_only": "This key exists only in English"
+  },
+  "auth": {
+    "login": "Log in",
+    "biometric_prompt": "Authenticate with Face ID"
+  }
+}

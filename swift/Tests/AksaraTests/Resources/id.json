@@ -1,0 +1,12 @@
+{
+  "_version": "1.0.0",
+  "common": {
+    "welcome": "Selamat datang, {{name}}!",
+    "items": {
+      "other": "{{count}} barang"
+    }
+  },
+  "auth": {
+    "login": "Masuk"
+  }
+}

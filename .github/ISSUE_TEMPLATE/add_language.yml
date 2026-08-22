@@ -1,0 +1,38 @@
+name: Add a language's plural rules
+description: Contribute CLDR plural rules for a new language (a great first PR).
+labels: ["good first issue", "plural-rules"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adding a language = one `PluralRule` per platform + registration + a mirrored
+        test. See the worked example in [CONTRIBUTING.md](../CONTRIBUTING.md).
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: "French (fr)"
+    validations:
+      required: true
+  - type: textarea
+    id: cldr
+    attributes:
+      label: CLDR categories
+      description: Which of zero/one/two/few/many/other apply, and the rule for each?
+      placeholder: "one: n in 0..1; other: everything else"
+    validations:
+      required: true
+  - type: input
+    id: reference
+    attributes:
+      label: CLDR reference
+      value: "https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html"
+    validations:
+      required: false
+  - type: checkboxes
+    id: parity
+    attributes:
+      label: Parity
+      options:
+        - label: I'll add the rule + test on **both** Swift and Kotlin (or team up with someone who does the other).
+          required: true

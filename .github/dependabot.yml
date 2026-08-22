@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # GitHub Actions used by the workflows above.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: ["ci", "dependencies"]
+
+  # Kotlin / Gradle dependencies (coroutines, serialization, JUnit, AGP, Compose).
+  - package-ecosystem: gradle
+    directory: /kotlin
+    schedule:
+      interval: weekly
+    labels: ["kotlin", "dependencies"]
+
+  # SwiftPM dependencies (root Package.swift). No external deps today, but this keeps
+  # any future ones current.
+  - package-ecosystem: swift
+    directory: /
+    schedule:
+      interval: weekly
+    labels: ["swift", "dependencies"]

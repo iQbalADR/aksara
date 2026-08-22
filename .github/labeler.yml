@@ -1,0 +1,24 @@
+# PR auto-labels by touched path (actions/labeler v5 syntax).
+swift:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "swift/**"
+          - "Package.swift"
+          - "Aksara.podspec"
+          - "scripts/**"
+
+kotlin:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "kotlin/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
