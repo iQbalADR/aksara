@@ -105,19 +105,6 @@ Modular per concern so a contributor can touch one thing: `PluralResolver`
 (one rule per language family), `Interpolator`, `OTAUpdater`, and — in v2 — one
 binding class per UI widget. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### Why two native libraries and not Kotlin Multiplatform (KMP)?
-
-Intentional, for v1. The product's guarantee is two **independent, idiomatic native
-runtimes** kept in lockstep by a mirrored API and mirrored tests — that's what lets
-iOS and Android teams adopt Aksara without pulling in a shared-runtime toolchain, and
-what keeps first contributions small (one plural rule, one widget binding). We've kept
-the entire v1 runtime native per-platform for that reason.
-
-A KMP port is technically low-friction later if desired — `aksara-core` is already
-pure Kotlin whose only dependencies (kotlinx-coroutines, kotlinx-serialization) are
-KMP-compatible; only the platform I/O (file cache, HTTP, TLS pinning) would move
-behind `expect/actual`. Revisit post-v1.
-
 ## Building & testing (iOS)
 
 The `Package.swift` manifest is at the repo root; the Swift sources live under
