@@ -1,0 +1,64 @@
+site_name: Aksara
+site_description: >-
+  Cross-platform live localization runtime for iOS & Android — one shared
+  i18next-style JSON, over-the-air updates, O(1) lookup, and live SwiftUI/Compose UI.
+site_url: https://iqbaladr.github.io/aksara/
+repo_url: https://github.com/iQbalADR/aksara
+repo_name: iQbalADR/aksara
+copyright: © 2026 iQbalADR · MIT License
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  icon:
+    logo: material/translate
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Get started:
+      - iOS (Swift): installation.md
+      - Android (Kotlin): android.md
+  - Reference:
+      - JSON format: format.md
+      - Design & roadmap: DESIGN.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search

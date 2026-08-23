@@ -18,5 +18,8 @@ Pods/
 Carthage/Build/
 Carthage/Checkouts/
 
+# MkDocs docs site build output
+site/
+
 # macOS
 .DS_Store

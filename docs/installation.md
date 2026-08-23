@@ -74,7 +74,7 @@ swift test
 
 ## CocoaPods
 
-The [`Aksara.podspec`](../Aksara.podspec) is at the repository root. It exposes two
+The [`Aksara.podspec`](https://github.com/iQbalADR/aksara/blob/main/Aksara.podspec) is at the repository root. It exposes two
 subspecs; **`Core` is the default**.
 
 ### Podfile
@@ -206,5 +206,5 @@ Localizer.shared.configure(.init(
 print(Localizer.shared.t("common.welcome", args: ["name": "Oncom"]))
 ```
 
-See the [README quickstart](../README.md#60-second-quickstart-ios) for the full API
+See the [Home page](index.md) for the full API
 and the [format spec](format.md) for how to author `en.json`.
