@@ -1,7 +1,15 @@
 # Aksara
 
+[![CI](https://github.com/iQbalADR/aksara/actions/workflows/ci.yml/badge.svg)](https://github.com/iQbalADR/aksara/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.iqbaladr/aksara-core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.iqbaladr/aksara-core)
+[![Docs](https://img.shields.io/badge/docs-aksara-blue)](https://iqbaladr.github.io/aksara/)
+[![SwiftPM](https://img.shields.io/badge/SwiftPM-compatible-brightgreen)](https://github.com/iQbalADR/aksara)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > **Aksara** — Sanskrit/Indonesian for "letter / character / script." A single
 > shared source of truth for the words in your app, on iOS and Android.
+>
+> 📖 **Docs: <https://iqbaladr.github.io/aksara/>**
 
 Cross-platform **live localization runtime** for native mobile. iOS (Swift) and
 Android (Kotlin) load translations from a **single shared i18next-style JSON source
