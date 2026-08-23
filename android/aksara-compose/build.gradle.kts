@@ -3,9 +3,9 @@
 // from the default build (see ../settings.gradle.kts) and only configured when building
 // with `-PwithAndroid`. Publishing produces an AAR.
 plugins {
-    id("com.android.library") version "8.5.2"
-    kotlin("android") version "2.4.10"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.4.10"
+    id("com.android.library")
+    kotlin("android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.vanniktech.maven.publish")
 }
 
