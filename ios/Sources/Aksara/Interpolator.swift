@@ -7,8 +7,8 @@ import Foundation
 ///   silently dropping it — a visible gap is easier to catch than an empty string.
 /// - Fast path: templates with no `{{` are returned untouched.
 ///
-/// This is deliberately a plain string scan. Per the spec we only cache compiled
-/// templates if profiling shows a hot path — no pre-optimization.
+/// It performs a single left-to-right scan of the template, appending literal spans
+/// and substituting placeholders as it goes.
 enum Interpolator {
     static func interpolate(_ template: String, args: [String: String]) -> String {
         guard !args.isEmpty, template.contains("{{") else { return template }

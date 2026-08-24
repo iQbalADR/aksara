@@ -45,7 +45,6 @@ nav:
       - Android (Kotlin): android.md
   - Reference:
       - JSON format: format.md
-      - Design & roadmap: DESIGN.md
 
 markdown_extensions:
   - admonition

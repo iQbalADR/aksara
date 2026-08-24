@@ -33,7 +33,7 @@ iOS and Android stay in sync by construction.
 
 The two libraries are mirrored 1:1 — same API, same behavior, **47 matching tests each**.
 
-The [phased roadmap](docs/DESIGN.md) is: **v1** the working 80% (this), **v2** the
+The [phased roadmap](SPEC.md) is: **v1** the working 80% (this), **v2** the
 imperative XIB/`app:locKey` binding registry + signed payloads, **v3** reach.
 
 ## Install

@@ -13,9 +13,8 @@ import CryptoKit
 ///   | openssl x509 -outform der | openssl dgst -sha256 -binary | openssl base64
 /// ```
 ///
-/// > This is full-certificate pinning. Public-key (SPKI) pinning — which survives
-/// > cert renewal on the same key — is a planned refinement; the pin format will be
-/// > namespaced when it lands.
+/// > This pins the whole DER certificate, so a pin must be updated whenever the
+/// > endpoint's certificate is renewed.
 enum CertificatePinner {
     static func validate(trust: SecTrust, against pins: Set<String>) -> Bool {
         guard !pins.isEmpty else { return true } // pinning disabled

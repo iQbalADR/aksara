@@ -243,6 +243,13 @@ core-spec (documented format + behavior, language-agnostic)
 - More widget bindings, more language plural rules (contributor-driven)
 - Optional CLI to validate/convert i18next JSON
 
+**Refinements / backlog**
+- **Public-key (SPKI) pinning** as an alternative to the current full-certificate
+  pinning, so a pin survives certificate renewal on the same key (namespaced pin
+  format). Today `CertificatePinner` pins the whole DER cert.
+- **Interpolation template caching** — pre-compile/cache templates only if profiling
+  shows a hot path (`Interpolator` currently does a plain per-call scan).
+
 ---
 
 ## Contributor-friendliness

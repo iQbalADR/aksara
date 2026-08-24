@@ -76,5 +76,5 @@ by mirrored tests.
 ## Learn more
 
 - [JSON format](format.md) — how to author your translation bundles.
-- [Design & roadmap](DESIGN.md) — architecture and what's planned for v2/v3.
+- [Design &amp; roadmap](https://github.com/iQbalADR/aksara/blob/main/SPEC.md) — architecture and what's planned next.
 - [GitHub repository](https://github.com/iQbalADR/aksara)
