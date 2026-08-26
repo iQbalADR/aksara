@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{#- Site-wide announcement bar showing the latest release. Version comes from
+    `extra.version` in mkdocs.yml (single place to bump). -#}
+{% block announce %}
+  <a href="{{ config.repo_url }}/releases">
+    🎉 Latest release: <strong>Aksara v{{ config.extra.version }}</strong> — network-agnostic runtime (bring your own transport &amp; parser)
+  </a>
+{% endblock %}

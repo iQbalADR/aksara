@@ -1,5 +1,9 @@
 # Aksara
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.iqbaladr/aksara-core?label=Maven%20Central&color=indigo)](https://central.sonatype.com/artifact/io.github.iqbaladr/aksara-core)
+[![Latest tag](https://img.shields.io/github/v/tag/iQbalADR/aksara?label=release&sort=semver&color=indigo)](https://github.com/iQbalADR/aksara/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/iQbalADR/aksara/blob/main/LICENSE)
+
 **Cross-platform live localization runtime for iOS & Android.** One shared
 i18next-style JSON source of truth, over-the-air updates, O(1) lookup, and live
 SwiftUI / Jetpack Compose UI — with a **mirrored Swift/Kotlin API** kept in lockstep

@@ -5,12 +5,18 @@ site_description: >-
 site_url: https://iqbaladr.github.io/aksara/
 repo_url: https://github.com/iQbalADR/aksara
 repo_name: iQbalADR/aksara
-copyright: © 2026 iQbalADR · MIT License
+copyright: © 2026 iQbalADR · MIT License · v0.2.0
 docs_dir: docs
 site_dir: site
 
+# Single place to bump the version shown across the site (announcement bar). Keep in
+# sync with android/gradle.properties (VERSION_NAME), Aksara.podspec, and the git tag.
+extra:
+  version: "0.2.0"
+
 theme:
   name: material
+  custom_dir: overrides
   icon:
     logo: material/translate
     repo: fontawesome/brands/github
@@ -30,6 +36,7 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
   features:
+    - announce.dismiss
     - navigation.sections
     - navigation.top
     - navigation.footer
