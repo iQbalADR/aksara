@@ -43,7 +43,7 @@ imperative XIB/`app:locKey` binding registry + signed payloads, **v3** reach.
 
 ```swift
 // Package.swift
-dependencies: [ .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.1.0") ],
+dependencies: [ .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.2.0") ],
 targets: [ .target(name: "App", dependencies: [
     .product(name: "Aksara", package: "aksara"),
     .product(name: "AksaraSwiftUI", package: "aksara"),
@@ -54,8 +54,8 @@ targets: [ .target(name: "App", dependencies: [
 
 ```kotlin
 dependencies {
-    implementation("io.github.iqbaladr:aksara-core:0.1.0")
-    implementation("io.github.iqbaladr:aksara-compose:0.1.0") // optional Compose bindings
+    implementation("io.github.iqbaladr:aksara-core:0.2.0")
+    implementation("io.github.iqbaladr:aksara-compose:0.2.0") // optional Compose bindings
 }
 ```
 

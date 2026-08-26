@@ -13,8 +13,8 @@ Aksara's Android runtime is published to **Maven Central**.
 
     ```kotlin
     dependencies {
-        implementation("io.github.iqbaladr:aksara-core:0.1.0")
-        implementation("io.github.iqbaladr:aksara-compose:0.1.0") // optional
+        implementation("io.github.iqbaladr:aksara-core:0.2.0")
+        implementation("io.github.iqbaladr:aksara-compose:0.2.0") // optional
     }
     ```
 
@@ -22,8 +22,8 @@ Aksara's Android runtime is published to **Maven Central**.
 
     ```groovy
     dependencies {
-        implementation 'io.github.iqbaladr:aksara-core:0.1.0'
-        implementation 'io.github.iqbaladr:aksara-compose:0.1.0' // optional
+        implementation 'io.github.iqbaladr:aksara-core:0.2.0'
+        implementation 'io.github.iqbaladr:aksara-compose:0.2.0' // optional
     }
     ```
 

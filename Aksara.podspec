@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   # Confirm the name is free before publishing: `pod trunk info Aksara`.
   s.name             = 'Aksara'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'Cross-platform live localization runtime with OTA updates.'
   s.description      = <<-DESC
     Aksara loads translations from a shared i18next-style JSON source of truth and

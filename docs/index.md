@@ -29,7 +29,7 @@ by mirrored tests.
 
     ```swift
     // Package.swift
-    dependencies: [ .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.1.0") ]
+    dependencies: [ .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.2.0") ]
     ```
 
     Also available via **CocoaPods** and **Carthage** — see [iOS install](installation.md).
@@ -38,8 +38,8 @@ by mirrored tests.
 
     ```kotlin
     dependencies {
-        implementation("io.github.iqbaladr:aksara-core:0.1.0")
-        implementation("io.github.iqbaladr:aksara-compose:0.1.0") // optional Compose bindings
+        implementation("io.github.iqbaladr:aksara-core:0.2.0")
+        implementation("io.github.iqbaladr:aksara-compose:0.2.0") // optional Compose bindings
     }
     ```
 

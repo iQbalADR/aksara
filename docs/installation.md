@@ -35,14 +35,14 @@ consumable directly.
 
 1. **File ▸ Add Package Dependencies…**
 2. Enter the repo URL: `https://github.com/iQbalADR/aksara.git`
-3. Choose a version rule (e.g. *Up to Next Major* from `0.1.0`).
+3. Choose a version rule (e.g. *Up to Next Major* from `0.2.0`).
 4. Add the products you need — `Aksara` and/or `AksaraSwiftUI` — to your target.
 
 ### Package.swift
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.1.0"),
+    .package(url: "https://github.com/iQbalADR/aksara.git", from: "0.2.0"),
 ],
 targets: [
     .target(
@@ -98,8 +98,8 @@ and open the generated `.xcworkspace`.
 ### Consuming from the Git repo before it's published to trunk
 
 ```ruby
-pod 'Aksara', :git => 'https://github.com/iQbalADR/aksara.git', :tag => '0.1.0'
-pod 'Aksara/SwiftUI', :git => 'https://github.com/iQbalADR/aksara.git', :tag => '0.1.0'
+pod 'Aksara', :git => 'https://github.com/iQbalADR/aksara.git', :tag => '0.2.0'
+pod 'Aksara/SwiftUI', :git => 'https://github.com/iQbalADR/aksara.git', :tag => '0.2.0'
 ```
 
 ### Maintainer notes
@@ -122,7 +122,7 @@ consumes those binaries.
 ### Cartfile
 
 ```
-github "iQbalADR/aksara" ~> 0.1.0
+github "iQbalADR/aksara" ~> 0.2.0
 ```
 
 Then build (XCFrameworks are required — always pass `--use-xcframeworks`):
@@ -154,7 +154,7 @@ where `Aksara.json` maps versions to the zipped XCFramework:
 
 ```json
 {
-  "0.1.0": "https://github.com/iQbalADR/aksara/releases/download/0.1.0/Aksara.xcframework.zip"
+  "0.2.0": "https://github.com/iQbalADR/aksara/releases/download/0.2.0/Aksara.xcframework.zip"
 }
 ```
 
