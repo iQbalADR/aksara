@@ -69,14 +69,21 @@ On load, the nested JSON is **flattened** into a single `[String: String]` /
 immutable table is published to the main thread and swapped in as a single
 reference.
 
-## OTA & security rules
+## Update & security rules
 
-- A downloaded bundle is **schema-validated before** it may replace the live table.
-  On any failure (network, malformed payload) the current table is kept (**last-good**).
-- Change detection uses **`ETag`** (conditional `If-None-Match` GET) and/or the
-  `_version` field — only changed bundles are downloaded.
-- The last-good remote bundle is **persisted to disk** and loaded on next launch
-  before the network is touched.
-- The update endpoint should be **certificate-pinned**. Downloading *strings*
-  (data, not code) is App Store / Play Store compliant — the same mechanism
-  Firebase Remote Config uses.
+Aksara is **network-agnostic** — you download bundles yourself and feed them in with
+`applyBundle`.
+
+- A bundle you apply is **parsed + validated before** it may replace the live table
+  (with the default parser: non-object roots and `null` leaves are rejected). On any
+  parse failure the current table is kept (**last-good**).
+- **Change detection / conditional requests** (ETag, `_version`, etc.) are the
+  consumer's responsibility, since Aksara doesn't fetch. The default parser reserves
+  and ignores a top-level `_version` key if you include one.
+- The last applied bundle is **persisted to disk** and re-parsed on next launch
+  (warm start) before you re-download anything.
+- **Transport security** (TLS/certificate pinning, auth) lives in your network layer.
+  Downloading *strings* (data, not code) is App Store / Play Store compliant — the
+  same mechanism Firebase Remote Config uses.
+- Need a different on-the-wire shape? Inject a custom `TranslationParser` — this format
+  spec describes only the built-in `I18nextParser`.

@@ -83,15 +83,18 @@ loc.configure(LocalizationConfig(
     defaultLanguage = "en",
     fallbackLanguage = "en",
     bundledResource = "en",
-    remoteUrl = "https://cdn.example.com/i18n/",
     bundledLoader = { code -> context.assets.open("$code.json").readBytes() }, // Android
     cacheDir = context.cacheDir,
+    // parser = MyCustomParser(),  // optional: accept your own JSON model
 ))
 
 loc.t("common.welcome", mapOf("name" to "Oncom"))  // "Welcome, Oncom!"
 loc.t("common.items", count = 3)                    // plural-aware
 loc.setLanguage("id")                               // triggers live update
-loc.checkForUpdates()                               // suspend: OTA fetch + atomic swap
+
+// Over-the-air: you fetch (any client), Aksara parses + swaps:
+loc.applyBundle(myHttpClient.get(".../id.json"), "id")
+loc.update("id") { lang -> myHttpClient.get(".../$lang.json") }  // convenience
 ```
 
 ### Compose — updates itself
@@ -110,7 +113,7 @@ fun Welcome(cartCount: Int) {
 ```
 
 `locString(...)` collects the core's `revision` StateFlow, so it recomposes on every
-language switch or OTA swap.
+language switch or applied update.
 
 ## Module ↔ Swift file map
 
@@ -119,25 +122,24 @@ language switch or OTA swap.
 | `Flattener.kt` | `Flattener.swift` | nested JSON → `Map<String, String>` |
 | `Interpolator.kt` | `Interpolator.swift` | `{{var}}` replacement |
 | `PluralResolver.kt` / `PluralRules.kt` | `PluralResolver.swift` / `PluralRules.swift` | `(lang, count) → category`; en/id/ja/ar |
-| `SchemaValidator.kt` | `SchemaValidator.swift` | validate before swap |
+| `SchemaValidator.kt` | `SchemaValidator.swift` | validate the default i18next format |
+| `TranslationParser.kt` | `TranslationParser.swift` | pluggable format → flat map (`I18nextParser` default) |
 | `TranslationTable.kt` | `TranslationTable.swift` | immutable flattened table |
-| `DiskCache.kt` | `DiskCache.swift` | last-good bundle + ETag persistence |
-| `RemoteBundleFetcher.kt` | `RemoteBundleFetcher.swift` | conditional GET + cert pinning |
-| `CertificatePinner.kt` | `CertificatePinner.swift` | `base64(SHA-256(DER cert))` pinning |
-| `OtaUpdater.kt` | `OTAUpdater.swift` | fetch → validate → build → last-good |
-| `Localizer.kt` | `Localizer.swift` | orchestration, `t`, atomic swap, `revision` |
+| `DiskCache.kt` | `DiskCache.swift` | last-good bundle warm-start persistence |
+| `Localizer.kt` | `Localizer.swift` | orchestration, `t`, `applyBundle`, atomic swap, `revision` |
 | `aksara-compose/LocalizedText.kt` | `AksaraSwiftUI/*` | `locString()` / `LocText` live UI |
+
+> Aksara does **no** networking — there's no fetcher or certificate pinner. You fetch
+> bundles yourself and hand them to `applyBundle`.
 
 ## Parity notes
 
 - **Atomic swap:** Swift swaps an immutable `TranslationTable` under `NSLock`; Kotlin
   uses `AtomicReference<State>` — lock-free reads for the hot `t(...)` path.
-- **Off-main parsing → main publish:** Swift `async`; Kotlin coroutines
-  (`Dispatchers.IO` to fetch, `Dispatchers.Default` to parse).
+- **Custom parsing:** Swift `TranslationParser` protocol; Kotlin `fun interface
+  TranslationParser` — inject your own to accept any JSON model.
 - **Change broadcast:** Swift posts `Notification.Name.aksaraDidChange`; Kotlin
   exposes `revision: StateFlow<Int>` (Compose collects it).
-- **Cert pinning:** same pin format — `base64(SHA-256(DER cert))` — via a JDK
-  `X509TrustManager` that validates the chain first, then checks pins.
 - **Distribution:** Maven Central via Gradle; keep major/minor aligned with Swift.
 
 ## Publishing (Kotlin representation of a bool leaf)

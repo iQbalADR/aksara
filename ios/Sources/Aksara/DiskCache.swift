@@ -1,10 +1,12 @@
 import Foundation
 
-/// Persists the last-good remote bundle (and its ETag) per language.
+/// Persists the last-good bundle per language (raw bytes as applied).
 ///
-/// On launch the `Localizer` loads the cached bundle — if any — **before** hitting
-/// the network, so a returning user sees the latest translations offline and the
-/// first render never waits on a request.
+/// This is a **local warm-start cache**, not a network cache — Aksara does no
+/// fetching. On launch the `Localizer` re-parses the cached bytes (with the configured
+/// `TranslationParser`) so a returning user sees the last applied translations before
+/// the app re-downloads anything. Set `LocalizationConfig.cacheDirectory` to control
+/// (or, if you handle persistence yourself, ignore this entirely).
 public final class DiskCache: @unchecked Sendable {
     private let directory: URL
     private let fileManager = FileManager.default
@@ -26,28 +28,16 @@ public final class DiskCache: @unchecked Sendable {
     private func bundleURL(_ language: String) -> URL {
         directory.appendingPathComponent("\(language).json")
     }
-    private func etagURL(_ language: String) -> URL {
-        directory.appendingPathComponent("\(language).etag")
-    }
 
-    public func saveBundle(_ data: Data, etag: String?, language: String) {
+    public func saveBundle(_ data: Data, language: String) {
         try? data.write(to: bundleURL(language), options: .atomic)
-        if let etag {
-            try? Data(etag.utf8).write(to: etagURL(language), options: .atomic)
-        }
     }
 
     public func loadBundle(language: String) -> Data? {
         try? Data(contentsOf: bundleURL(language))
     }
 
-    public func loadETag(language: String) -> String? {
-        guard let data = try? Data(contentsOf: etagURL(language)) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
     public func clear(language: String) {
         try? fileManager.removeItem(at: bundleURL(language))
-        try? fileManager.removeItem(at: etagURL(language))
     }
 }

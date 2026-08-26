@@ -13,11 +13,15 @@ by mirrored tests.
 ## Why Aksara
 
 - **Over-the-air updates** — ship new translations without an app-store release.
-- **O(1) lookup** — JSON is flattened to a hash map, parsed off the main thread.
-- **Live UI** — language switches and OTA swaps update the visible UI in real time
-  (SwiftUI **and** Jetpack Compose).
-- **One source of truth** — the same i18next JSON on both platforms.
-- **Fintech-grade** — schema validation + certificate pinning on the update endpoint.
+- **Bring your own transport** — Aksara never fetches; you download bundles however
+  you like and feed them in with `applyBundle`.
+- **Pluggable parsing** — a default i18next parser, or inject your own to accept any
+  JSON model.
+- **O(1) lookup** — JSON is flattened to a hash map.
+- **Live UI** — language switches and applied updates update the visible UI in real
+  time (SwiftUI **and** Jetpack Compose).
+- **One source of truth** — the same JSON on both platforms.
+- **Safe swaps** — every bundle is validated before it can replace the live table.
 
 ## Install
 

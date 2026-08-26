@@ -3,14 +3,14 @@ package com.aksara
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class LocalizerTest {
     /** Fresh Localizer per test (never the shared singleton) so state can't leak. */
     private fun makeLocalizer(
         default: String = "en",
         fallback: String = "en",
-        remoteUrl: String? = null,
-        fetcher: RemoteBundleFetcher? = null,
+        parser: TranslationParser = I18nextParser,
     ): Localizer {
         val loc = Localizer()
         loc.configure(
@@ -18,11 +18,10 @@ class LocalizerTest {
                 defaultLanguage = default,
                 fallbackLanguage = fallback,
                 bundledResource = default,
-                remoteUrl = remoteUrl,
                 bundledLoader = TestSupport.classpathLoader(),
                 cacheDir = TestSupport.makeTempDir(),
-            ),
-            fetcherOverride = fetcher,
+                parser = parser,
+            )
         )
         return loc
     }
@@ -117,39 +116,76 @@ class LocalizerTest {
         assertEquals(before + 1, loc.revision.value)
     }
 
-    // OTA end-to-end (through Localizer, mock fetcher)
+    // Applying consumer-fetched bundles
 
     @Test
-    fun checkForUpdatesSwapsTableLive() = runTest {
-        val payload = TestSupport.bytes("""{"auth":{"login":"Signed in (OTA)"}}""")
-        val fetcher = MockFetcher(listOf(Result.success(FetchOutcome.Updated(payload, "v9"))))
-        val loc = makeLocalizer(default = "en", fallback = "en", remoteUrl = "https://cdn.example.com/i18n/", fetcher = fetcher)
-
+    fun applyBundleSwapsActiveTableLive() {
+        val loc = makeLocalizer(default = "en", fallback = "en")
         assertEquals("Log in", loc.t("auth.login"))
-        val result = loc.checkForUpdates()
-        assertEquals(UpdateResult.Updated("en"), result)
-        assertEquals("Signed in (OTA)", loc.t("auth.login"))
+
+        loc.applyBundle(TestSupport.bytes("""{"auth":{"login":"Signed in (applied)"}}"""), "en")
+        assertEquals("Signed in (applied)", loc.t("auth.login"))
     }
 
     @Test
-    fun checkForUpdatesFailureKeepsLastGood() = runTest {
-        val fetcher = MockFetcher(listOf(Result.failure(OtaException("HTTP 503"))))
-        val loc = makeLocalizer(default = "en", fallback = "en", remoteUrl = "https://cdn.example.com/i18n/", fetcher = fetcher)
+    fun applyBundleBumpsRevision() {
+        val loc = makeLocalizer(default = "en", fallback = "en")
+        val before = loc.revision.value
+        loc.applyBundle(TestSupport.bytes("""{"auth":{"login":"X"}}"""), "en")
+        assertEquals(before + 1, loc.revision.value)
+    }
 
-        assertEquals(UpdateResult.Failed, loc.checkForUpdates())
+    @Test
+    fun applyBundleParseFailureKeepsLastGood() {
+        val loc = makeLocalizer(default = "en", fallback = "en")
+        assertFailsWith<Exception> { loc.applyBundle(TestSupport.bytes("garbage {"), "en") }
         assertEquals("Log in", loc.t("auth.login")) // unchanged
     }
 
     @Test
-    fun checkForUpdatesSkippedWithoutRemote() = runTest {
-        assertEquals(UpdateResult.Skipped, makeLocalizer().checkForUpdates())
+    fun applyBundleForInactiveLanguageIsCachedThenUsedOnSetLanguage() {
+        val loc = makeLocalizer(default = "en", fallback = "en")
+        loc.applyBundle(TestSupport.bytes("""{"auth":{"login":"Anmelden"}}"""), "de")
+        assertEquals("en", loc.currentLanguage)
+        assertEquals("Log in", loc.t("auth.login"))
+
+        loc.setLanguage("de")
+        assertEquals("Anmelden", loc.t("auth.login"))
     }
 
     @Test
-    fun cachedRemoteBundlePreferredOverBundledOnConfigure() {
+    fun updateUsesConsumerSuppliedFetch() = runTest {
+        val loc = makeLocalizer(default = "en", fallback = "en")
+        loc.update("en") { TestSupport.bytes("""{"auth":{"login":"Fetched by consumer"}}""") }
+        assertEquals("Fetched by consumer", loc.t("auth.login"))
+    }
+
+    @Test
+    fun applyBundleBeforeConfigureThrows() {
+        assertFailsWith<IllegalStateException> {
+            Localizer().applyBundle(TestSupport.bytes("{}"), "en")
+        }
+    }
+
+    // Custom parser (consumer-defined JSON model)
+
+    @Test
+    fun customParserFormat() {
+        val loc = makeLocalizer(default = "en", fallback = "en", parser = ListParser())
+        loc.applyBundle(
+            TestSupport.bytes("""{"items":[{"id":"auth.login","text":"Signed in (custom)"}]}"""),
+            "en",
+        )
+        assertEquals("Signed in (custom)", loc.t("auth.login"))
+    }
+
+    // Warm-start cache
+
+    @Test
+    fun cachedBundlePreferredOverBundledOnConfigure() {
         val tempDir = TestSupport.makeTempDir()
         DiskCache(tempDir).saveBundle(
-            TestSupport.bytes("""{"auth":{"login":"From cache"}}"""), etag = "v1", language = "en"
+            TestSupport.bytes("""{"auth":{"login":"From cache"}}"""), "en"
         )
 
         val loc = Localizer()

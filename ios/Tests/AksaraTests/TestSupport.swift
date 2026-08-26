@@ -1,25 +1,5 @@
 import Foundation
-import XCTest
 @testable import Aksara
-
-/// A scripted `RemoteBundleFetcher` for OTA tests. Records what was requested and
-/// returns queued outcomes in order.
-final class MockFetcher: RemoteBundleFetcher, @unchecked Sendable {
-    private var outcomes: [Result<FetchOutcome, Error>]
-    private(set) var requestedURLs: [URL] = []
-    private(set) var sentETags: [String?] = []
-
-    init(_ outcomes: [Result<FetchOutcome, Error>]) {
-        self.outcomes = outcomes
-    }
-
-    func fetch(url: URL, etag: String?) async throws -> FetchOutcome {
-        requestedURLs.append(url)
-        sentETags.append(etag)
-        guard !outcomes.isEmpty else { throw OTAError.invalidResponse }
-        return try outcomes.removeFirst().get()
-    }
-}
 
 enum TestSupport {
     /// A throwaway directory unique per call — keeps each test's disk cache isolated.
@@ -31,4 +11,18 @@ enum TestSupport {
     }
 
     static func data(_ json: String) -> Data { Data(json.utf8) }
+}
+
+/// A custom parser for a non-i18next format: `{"items":[{"id":"a.b","text":"…"}]}`.
+/// Demonstrates injecting a consumer-defined JSON model via `LocalizationConfig.parser`.
+struct ListParser: TranslationParser {
+    struct Doc: Decodable {
+        struct Item: Decodable { let id: String; let text: String }
+        let items: [Item]
+    }
+
+    func parse(_ data: Data, language: String) throws -> [String: String] {
+        let doc = try JSONDecoder().decode(Doc.self, from: data)
+        return Dictionary(uniqueKeysWithValues: doc.items.map { ($0.id, $0.text) })
+    }
 }
