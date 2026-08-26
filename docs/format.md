@@ -21,9 +21,9 @@ It is **i18next-compatible** so existing web tooling and translators can be reus
   (`zero`, `one`, `two`, `few`, `many`, `other`). The resolver maps
   `(language, count) → category`; **`other` is always required** as the fallback.
 - **Arrays** are supported and addressed by index: `steps.0`, `steps.1`.
-- **Optional metadata:** a top-level `_version` string (or number) is used as a
-  cheap change signal alongside HTTP `ETag`. It is stripped from the key space and
-  never returned by `t(...)`.
+- **Optional metadata:** a top-level `_version` string (or number) is a reserved key.
+  The default parser strips it from the key space (it's never returned by `t(...)`);
+  use it for your own change detection if you like.
 
 ```json
 {
