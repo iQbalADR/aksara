@@ -92,44 +92,47 @@ let loc = Localizer.shared
 loc.configure(.init(
     defaultLanguage: "en",
     fallbackLanguage: "en",
-    bundledResource: "en",        // sync-loaded at startup
-    remoteURL: URL(string: "https://cdn.example.com/i18n/")
+    bundledResource: "en"        // sync-loaded at startup
+    // parser: MyCustomParser()  // optional — default is I18nextParser
 ))
 loc.t("common.welcome", args: ["name": "Oncom"])   // -> "Welcome, Oncom!"
 loc.t("common.items", count: 3)                    // plural-aware
 loc.setLanguage("id")                              // triggers live update
-await loc.checkForUpdates()                         // OTA fetch + atomic swap
+try loc.applyBundle(data, for: "id")               // you fetched `data`; parse + atomic swap
 ```
 
 **Kotlin (mirror)**
 ```kotlin
 val loc = Localizer.instance
-loc.configure(Config(
+loc.configure(LocalizationConfig(
     defaultLanguage = "en",
     fallbackLanguage = "en",
     bundledResource = "en",
-    remoteUrl = "https://cdn.example.com/i18n/"
+    // parser = MyCustomParser(),  // optional — default is I18nextParser
 ))
 loc.t("common.welcome", mapOf("name" to "Oncom"))
 loc.t("common.items", count = 3)
 loc.setLanguage("id")
-loc.checkForUpdates()
+loc.applyBundle(data, "id")        // you fetched `data`; parse + atomic swap
 ```
 
 ---
 
 ## Feature requirements & mechanisms
 
-### 1. OTA runtime updates
-- Bundle a default JSON in app resources; fetch newer bundles from
-  `remoteURL` on launch and/or on demand.
-- **Change detection:** ETag or a `version` field — only download on change.
-- **Atomic swap:** parse & validate the full payload, build the new table,
-  then replace **one immutable in-memory reference**. Never mutate in place.
-- **Last-good:** on network failure or malformed payload, keep the current
-  table. Never leave the app in a half-updated state.
-- **Disk cache:** persist the last good remote bundle; load it on next launch
-  before hitting the network.
+### 1. Over-the-air updates (consumer-driven, network-agnostic)
+- Bundle a default JSON in app resources. **The SDK does not fetch** — the consumer
+  downloads newer bundles with whatever transport they choose and calls
+  `applyBundle(data, for: language)` (or the `update(for:using:)` convenience that
+  runs a caller-supplied fetch closure).
+- **Pluggable parsing:** a `TranslationParser` (default `I18nextParser`) turns raw
+  bytes into the flat lookup map, so consumers can inject their own JSON model.
+- **Atomic swap:** parse & validate the payload, build the new table, then replace
+  **one immutable in-memory reference**. Never mutate in place.
+- **Last-good:** on a parse/validation failure, keep the current table. Never leave
+  the app in a half-updated state.
+- **Disk cache:** persist the last applied bundle; re-parse it on next launch (warm
+  start). Change detection and transport security are the consumer's responsibility.
 
 ### 2. Performance
 - On load, **flatten** the nested JSON into a single `[String: String]`
@@ -182,12 +185,14 @@ loc.checkForUpdates()
 
 ## Security (fintech-grade — this is a differentiator, not an afterthought)
 
-- **Schema-validate** every downloaded bundle before it can replace the live
-  table; reject malformed payloads and keep last-good.
-- **Pin the update endpoint** (certificate/public-key pinning) so a MITM can't
-  serve a poisoned bundle.
-- Support an **optional signed-payload mode** (verify a signature over the JSON
-  before accepting it).
+- **Validate** every applied bundle before it can replace the live table (the
+  `TranslationParser` throws on malformed input); reject bad payloads and keep last-good.
+- **Transport security is the consumer's** — Aksara doesn't fetch, so TLS/certificate
+  pinning and auth live in the network layer the app already trusts. (No MITM surface
+  is added by the SDK.)
+- Support an **optional signed-payload mode** — a `TranslationParser` that verifies a
+  signature over the JSON before returning entries (a natural fit for the pluggable
+  parser).
 - Downloading *strings* (data, not code) is App Store / Play Store compliant —
   document this explicitly so adopters aren't scared off. Firebase Remote
   Config does the same thing.
@@ -199,14 +204,14 @@ loc.checkForUpdates()
 ```
 core-spec (documented format + behavior, language-agnostic)
    │
-   ├── ios/   Localizer, Loader, PluralResolver, Interpolator,
-   │            BindingRegistry, OTAUpdater  (+ SwiftUI + UIKit modules)
+   ├── ios/   Localizer, TranslationParser, PluralResolver, Interpolator,
+   │            BindingRegistry (v2)  (+ SwiftUI + UIKit modules)
    │
    └── android/  mirror of the above         (+ Compose + View modules)
 ```
 
 - **Modular per concern** so a contributor can touch one thing:
-  `PluralResolver`, `Interpolator`, `OTAUpdater`, `BindingRegistry`, and one
+  `PluralResolver`, `Interpolator`, `TranslationParser`, `BindingRegistry`, and one
   binding class per UI widget.
 - The **binding registry is the prime contributor surface** — "add live
   binding for `UISegmentedControl`", "add `app:locKey` to `Button`" are
@@ -270,12 +275,13 @@ core-spec (documented format + behavior, language-agnostic)
 3. Implement `t(key)` with `{{var}}` interpolation + fallback chain.
 4. Implement `PluralResolver` with CLDR categories (start: en, id, ja, ar).
 5. Bundled default language: synchronous startup load.
-6. `OTAUpdater`: fetch, ETag/version check, schema validate, atomic swap,
-   last-good, disk cache.
-7. SwiftUI `LocText` + `ObservableObject`/`@Published` revision-based re-render (iOS 15+).
-8. Compose `locString` + state/CompositionLocal re-render.
-9. Micro-benchmark proving O(1) lookup off the hot path.
-10. Endpoint certificate pinning for the update fetch.
+6. `applyBundle(data, for:)`: parse (via `TranslationParser`) → validate → atomic
+   swap → last-good → disk cache (warm start). No networking in the SDK.
+7. `TranslationParser` protocol/`fun interface` with a default `I18nextParser`, so
+   consumers can inject a custom JSON model.
+8. SwiftUI `LocText` + `ObservableObject`/`@Published` revision-based re-render (iOS 15+).
+9. Compose `locString` + state/CompositionLocal re-render.
+10. Micro-benchmark proving O(1) lookup off the hot path.
 11. `CONTRIBUTING.md` with the API-parity rule + `good first issue` guide.
 12. `README` quickstart (install → configure → `t()` → switch language live).
 

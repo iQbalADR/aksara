@@ -15,9 +15,9 @@ Cross-platform **live localization runtime** for native mobile. iOS (Swift) and
 Android (Kotlin) load translations from a **single shared i18next-style JSON source
 of truth** and render them in the UI, with three defining capabilities:
 
-1. **Over-the-air (OTA) updates** — fetch a newer bundle at runtime and swap it in
-   live, no app-store release needed.
-2. **O(1) lookup** — JSON is flattened to a hash map, parsed off the main thread.
+1. **Over-the-air updates** — you fetch a newer bundle at runtime (any transport);
+   Aksara parses and swaps it in live, no app-store release needed.
+2. **O(1) lookup** — JSON is flattened to a hash map.
 3. **Live UI reflection** — language switches and OTA updates update the visible UI
    in real time.
 
@@ -69,8 +69,7 @@ import Aksara
 Localizer.shared.configure(.init(
     defaultLanguage: "en",
     fallbackLanguage: "en",
-    bundledResource: "en",                                  // sync-loaded at startup
-    remoteURL: URL(string: "https://cdn.example.com/i18n/") // optional OTA
+    bundledResource: "en"   // sync-loaded at startup
 ))
 ```
 
@@ -81,11 +80,14 @@ Localizer.shared.t("common.welcome", args: ["name": "Oncom"]) // "Welcome, Oncom
 Localizer.shared.t("common.items", count: 3)                  // plural-aware
 ```
 
-Switch language live, or pull an OTA update:
+Switch language live, or apply an over-the-air update — **you** fetch the bytes
+(any transport), Aksara parses + swaps them in:
 
 ```swift
-Localizer.shared.setLanguage("id")          // UI updates live
-await Localizer.shared.checkForUpdates()      // fetch + atomic swap, last-good on failure
+Localizer.shared.setLanguage("id")            // UI updates live
+
+let data = try await myHTTPClient.get(".../id.json")  // your download, your rules
+try Localizer.shared.applyBundle(data, for: "id")     // parse + atomic swap, last-good on failure
 ```
 
 ### SwiftUI — updates itself
@@ -105,7 +107,7 @@ struct ContentView: View {
 ```
 
 `LocText` (and anything reading through `LocalizationManager`) re-renders
-automatically on every language switch or OTA swap — no manual refresh.
+automatically on every language switch or applied update — no manual refresh.
 
 ## Architecture
 
@@ -113,13 +115,13 @@ automatically on every language switch or OTA swap — no manual refresh.
 core-spec (docs/format.md — documented format + behavior, language-agnostic)
    │
    ├── ios/   Localizer, Flattener, PluralResolver, Interpolator,
-   │            SchemaValidator, DiskCache, OTAUpdater  (+ AksaraSwiftUI)
+   │            SchemaValidator, TranslationParser, DiskCache  (+ AksaraSwiftUI)
    │
    └── android/  mirror of the above                     (+ Compose)
 ```
 
 Modular per concern so a contributor can touch one thing: `PluralResolver`
-(one rule per language family), `Interpolator`, `OTAUpdater`, and — in v2 — one
+(one rule per language family), `Interpolator`, `TranslationParser`, and — in v2 — one
 binding class per UI widget. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Building & testing (iOS)
@@ -149,11 +151,10 @@ The Compose UI layer (`aksara-compose`) needs an Android SDK — see
 
 ## Security
 
-- Every downloaded bundle is **schema-validated** before it can replace the live
+- Every bundle you apply is **parsed + validated** before it can replace the live
   table; malformed payloads are rejected and last-good is kept.
-- The OTA endpoint supports **certificate pinning**
-  (`base64(SHA-256(DER cert))` pins).
-- Signed-payload mode is planned for v2.
+- **Transport security is yours** — Aksara doesn't fetch, so you apply your own TLS
+  pinning / auth in the network layer you already trust.
 - Downloading strings (data, not code) is store-compliant.
 
 ## License

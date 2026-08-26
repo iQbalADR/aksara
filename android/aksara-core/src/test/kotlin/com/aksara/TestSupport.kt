@@ -1,24 +1,11 @@
 package com.aksara
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import kotlin.io.path.createTempDirectory
-
-/**
- * A scripted [RemoteBundleFetcher] for OTA tests. Records what was requested and
- * returns queued outcomes in order. Mirror of the Swift `MockFetcher`.
- */
-class MockFetcher(outcomes: List<Result<FetchOutcome>>) : RemoteBundleFetcher {
-    private val queue = ArrayDeque(outcomes)
-    val requestedUrls = mutableListOf<String>()
-    val sentEtags = mutableListOf<String?>()
-
-    override suspend fun fetch(url: String, etag: String?): FetchOutcome {
-        requestedUrls += url
-        sentEtags += etag
-        val next = queue.removeFirstOrNull() ?: throw OtaException("no more outcomes")
-        return next.getOrThrow()
-    }
-}
 
 object TestSupport {
     /** A throwaway directory unique per call — keeps each test's disk cache isolated. */
@@ -32,4 +19,18 @@ object TestSupport {
     }
 
     fun bytes(json: String): ByteArray = json.toByteArray()
+}
+
+/**
+ * A custom parser for a non-i18next format: `{"items":[{"id":"a.b","text":"…"}]}`.
+ * Demonstrates injecting a consumer-defined JSON model via [LocalizationConfig.parser].
+ */
+class ListParser : TranslationParser {
+    override fun parse(data: ByteArray, language: String): Map<String, String> {
+        val items = Json.parseToJsonElement(data.decodeToString()).jsonObject["items"]!!.jsonArray
+        return items.associate { item ->
+            val obj = item.jsonObject
+            obj["id"]!!.jsonPrimitive.content to obj["text"]!!.jsonPrimitive.content
+        }
+    }
 }

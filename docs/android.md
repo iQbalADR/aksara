@@ -37,9 +37,9 @@ loc.configure(LocalizationConfig(
     defaultLanguage = "en",
     fallbackLanguage = "en",
     bundledResource = "en",
-    remoteUrl = "https://cdn.example.com/i18n/",                      // optional OTA
     bundledLoader = { code -> context.assets.open("$code.json").readBytes() },
     cacheDir = context.cacheDir,
+    // parser = MyCustomParser(),   // optional: accept your own JSON model
 ))
 ```
 
@@ -49,7 +49,19 @@ loc.configure(LocalizationConfig(
 loc.t("common.welcome", mapOf("name" to "Oncom")) // "Welcome, Oncom!"
 loc.t("common.items", count = 3)                   // plural-aware
 loc.setLanguage("id")                              // triggers live update
-loc.checkForUpdates()                              // suspend: OTA fetch + atomic swap
+```
+
+## Over-the-air updates — you fetch, Aksara applies
+
+Aksara never downloads anything. Fetch the bytes with whatever client you already use
+(OkHttp, Ktor, Retrofit…), then hand them in:
+
+```kotlin
+val json: ByteArray = myHttpClient.get("https://cdn.example.com/i18n/id.json")
+loc.applyBundle(json, "id")   // parse + validate + atomic swap; last-good on failure
+
+// or let the convenience helper run your fetch for you:
+loc.update("id") { lang -> myHttpClient.get("https://cdn.example.com/i18n/$lang.json") }
 ```
 
 ## Compose — updates itself
@@ -67,7 +79,7 @@ fun Welcome(cartCount: Int) {
 ```
 
 `locString(...)` collects the runtime's `revision` flow, so it **recomposes
-automatically** on every language switch or OTA update — no manual refresh.
+automatically** on every language switch or applied update — no manual refresh.
 
 !!! note "Mirrors the Swift API"
     The method names and behavior match the [iOS runtime](installation.md) exactly.

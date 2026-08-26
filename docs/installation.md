@@ -4,7 +4,7 @@ Aksara ships two products:
 
 | Product | Import | What it gives you |
 |---|---|---|
-| `Aksara` | `import Aksara` | Core runtime: `Localizer`, plurals, interpolation, OTA. No UI dependency. |
+| `Aksara` | `import Aksara` | Core runtime: `Localizer`, plurals, interpolation, `applyBundle`. No UI dependency. |
 | `AksaraSwiftUI` | `import AksaraSwiftUI` | `LocalizationManager` + `LocText` — SwiftUI views that update live. |
 
 Pick your package manager:

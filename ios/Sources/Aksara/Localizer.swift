@@ -1,14 +1,26 @@
 import Foundation
 
+/// Errors thrown by the `Localizer` itself (parser errors propagate from the
+/// injected `TranslationParser`).
+public enum AksaraError: Error, Equatable {
+    /// `applyBundle`/`update` was called before `configure(_:)`.
+    case notConfigured
+}
+
 /// The runtime entry point. Loads translations, resolves keys in O(1), and swaps in
-/// new tables atomically for language switches and OTA updates.
+/// new tables atomically for language switches and consumer-supplied bundle updates.
 ///
 /// Public API is mirrored 1:1 with the Kotlin `Localizer` — see `android/`.
 ///
-/// Threading: `t(...)` is synchronous and safe to call from the main thread (it's a
-/// brief lock + one dictionary lookup). Bundled languages load synchronously (they're
-/// small — the spec requires first render never wait on disk). Remote updates fetch
-/// and parse off-main via `async`, then publish the finished table to the main thread.
+/// **Network-agnostic:** Aksara never downloads anything. You fetch bundles however
+/// you like (URLSession, Alamofire, a CDN SDK, a file on disk…) and hand the bytes to
+/// `applyBundle(_:for:)`. How those bytes are parsed is pluggable too — see
+/// `TranslationParser`.
+///
+/// Threading: `t(...)` is synchronous and safe on the main thread (a brief lock + one
+/// dictionary lookup). Bundled languages load synchronously at `configure`. `applyBundle`
+/// parses on the calling thread — call it off the main thread for large payloads (the
+/// `update(for:using:)` helper already runs in an async context).
 public final class Localizer: @unchecked Sendable {
     /// Shared instance used by the SwiftUI/UIKit layers. You may also create your own.
     public static let shared = Localizer()
@@ -19,7 +31,6 @@ public final class Localizer: @unchecked Sendable {
     private var active: TranslationTable?
     private var fallback: TranslationTable?
     private var cache: DiskCache?
-    private var updater: OTAUpdater?
     private let plurals: PluralResolver
 
     public init(pluralResolver: PluralResolver = .default) {
@@ -31,24 +42,12 @@ public final class Localizer: @unchecked Sendable {
 
     /// Configure and perform the synchronous first load. Call once at startup.
     public func configure(_ config: LocalizationConfig) {
-        configure(config, fetcherOverride: nil)
-    }
-
-    /// Internal seam so tests can inject a mock `RemoteBundleFetcher`.
-    func configure(_ config: LocalizationConfig, fetcherOverride: RemoteBundleFetcher?) {
         let cache = DiskCache(directory: config.cacheDirectory)
 
         lock.lock()
         self.config = config
         self._language = config.defaultLanguage
         self.cache = cache
-        if let remote = config.remoteURL {
-            let fetcher = fetcherOverride
-                ?? URLSessionBundleFetcher(pinnedCertificateHashes: config.pinnedCertificateHashes)
-            self.updater = OTAUpdater(remoteBaseURL: remote, fetcher: fetcher, cache: cache)
-        } else {
-            self.updater = nil
-        }
         lock.unlock()
 
         // 1) Synchronous bundled load — first render must not wait on disk/network.
@@ -62,10 +61,12 @@ public final class Localizer: @unchecked Sendable {
         self.fallback = fallbackTable
         lock.unlock()
 
-        // 2) Prefer a last-good cached remote bundle over the bundled default, if present.
+        // 2) Prefer a last-good cached bundle (from a previous applyBundle) over the
+        //    bundled default, if present and still parseable with the current parser.
         if let cached = cache.loadBundle(language: config.defaultLanguage),
-           let cachedTable = try? TranslationTable.make(language: config.defaultLanguage, data: cached) {
-            swapActive(cachedTable, language: config.defaultLanguage, notify: true)
+           let entries = try? config.parser.parse(cached, language: config.defaultLanguage) {
+            swapActive(TranslationTable(language: config.defaultLanguage, entries: entries),
+                       language: config.defaultLanguage, notify: true)
         }
     }
 
@@ -127,8 +128,8 @@ public final class Localizer: @unchecked Sendable {
 
         let table: TranslationTable?
         if let cached = cache?.loadBundle(language: language),
-           let cachedTable = try? TranslationTable.make(language: language, data: cached) {
-            table = cachedTable
+           let entries = try? config.parser.parse(cached, language: language) {
+            table = TranslationTable(language: language, entries: entries)
         } else {
             table = loadBundledTable(language: language, config: config)
         }
@@ -137,27 +138,46 @@ public final class Localizer: @unchecked Sendable {
         swapActive(table, language: language, notify: true)
     }
 
-    // MARK: - OTA
+    // MARK: - Applying consumer-fetched bundles
 
-    /// Fetch a newer bundle for the active language and atomically swap it in.
-    /// Keeps last-good on any failure. Returns `.skipped` if no `remoteURL` is set.
-    @discardableResult
-    public func checkForUpdates() async -> UpdateResult {
-        // Read shared state through a synchronous helper — never hold the lock
-        // across an `await`.
-        let (updater, language) = updateSnapshot()
-        guard let updater else { return .skipped }
+    /// Feed a freshly-downloaded bundle into the runtime. **You** fetch the bytes
+    /// (any transport, any auth); Aksara parses, validates, and swaps.
+    ///
+    /// - The configured `TranslationParser` parses `data`. If it throws, the current
+    ///   table is kept (last-good) and the error is re-thrown.
+    /// - On success the bytes are persisted to the warm-start cache for `language`.
+    /// - If `language` is the active or fallback language, the visible table is swapped
+    ///   and observers are notified. Otherwise it's cached for a later `setLanguage`.
+    ///
+    /// - Throws: `AksaraError.notConfigured`, or whatever the parser throws.
+    public func applyBundle(_ data: Data, for language: String) throws {
+        lock.lock(); let config = self.config; let cache = self.cache; lock.unlock()
+        guard let config else { throw AksaraError.notConfigured }
 
-        let (result, table) = await updater.checkForUpdates(language: language)
-        if case .updated = result, let table {
-            swapActive(table, language: language, notify: true)
-        }
-        return result
+        // Parse first — a bad payload must never replace last-good.
+        let entries = try config.parser.parse(data, language: language)
+        cache?.saveBundle(data, language: language)
+
+        let table = TranslationTable(language: language, entries: entries)
+        lock.lock()
+        var changed = false
+        if language == _language { active = table; changed = true }
+        if language == config.fallbackLanguage { fallback = table; changed = true }
+        lock.unlock()
+        if changed { postChange() }
     }
 
-    private func updateSnapshot() -> (OTAUpdater?, String) {
-        lock.lock(); defer { lock.unlock() }
-        return (updater, _language)
+    /// Convenience: run your own async `fetch` for `language`, then apply the result.
+    /// Aksara stays agnostic — `fetch` is entirely yours.
+    ///
+    /// ```swift
+    /// try await loc.update(for: "id") { lang in
+    ///     try await myClient.download("https://cdn.example.com/i18n/\(lang).json")
+    /// }
+    /// ```
+    public func update(for language: String, using fetch: (String) async throws -> Data) async throws {
+        let data = try await fetch(language)
+        try applyBundle(data, for: language)
     }
 
     // MARK: - Introspection
@@ -195,10 +215,11 @@ public final class Localizer: @unchecked Sendable {
 
     private func loadBundledTable(language: String, config: LocalizationConfig) -> TranslationTable? {
         guard let url = config.bundle.url(forResource: language, withExtension: "json"),
-              let data = try? Data(contentsOf: url) else {
+              let data = try? Data(contentsOf: url),
+              let entries = try? config.parser.parse(data, language: language) else {
             return nil
         }
-        return try? TranslationTable.make(language: language, data: data)
+        return TranslationTable(language: language, entries: entries)
     }
 
     private func stringify(_ args: [String: Any]) -> [String: String] {

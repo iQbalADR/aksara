@@ -3,7 +3,7 @@ import Combine
 import Aksara
 
 /// SwiftUI-facing wrapper around `Localizer`. It publishes a `revision` counter that
-/// bumps on every language switch / OTA swap; any view observing this manager
+/// bumps on every language switch / applied bundle; any view observing this manager
 /// (via `@StateObject` / `@ObservedObject`, or through `LocText`) re-renders
 /// automatically when a table swaps.
 ///
@@ -58,8 +58,13 @@ public final class LocalizationManager: ObservableObject {
         localizer.setLanguage(language)
     }
 
-    @discardableResult
-    public func checkForUpdates() async -> UpdateResult {
-        await localizer.checkForUpdates()
+    /// Feed a consumer-downloaded bundle in (see `Localizer.applyBundle(_:for:)`).
+    public func applyBundle(_ data: Data, for language: String) throws {
+        try localizer.applyBundle(data, for: language)
+    }
+
+    /// Run your own async `fetch`, then apply the result (see `Localizer.update(for:using:)`).
+    public func update(for language: String, using fetch: (String) async throws -> Data) async throws {
+        try await localizer.update(for: language, using: fetch)
     }
 }

@@ -6,19 +6,18 @@ final class LocalizerTests: XCTestCase {
     private func makeLocalizer(
         default defaultLanguage: String = "en",
         fallback fallbackLanguage: String = "en",
-        remoteURL: URL? = nil,
-        fetcher: RemoteBundleFetcher? = nil
+        parser: TranslationParser = I18nextParser()
     ) -> Localizer {
         let loc = Localizer()
         let config = LocalizationConfig(
             defaultLanguage: defaultLanguage,
             fallbackLanguage: fallbackLanguage,
             bundledResource: defaultLanguage,
-            remoteURL: remoteURL,
             bundle: .module,
-            cacheDirectory: TestSupport.makeTempDir()
+            cacheDirectory: TestSupport.makeTempDir(),
+            parser: parser
         )
-        loc.configure(config, fetcherOverride: fetcher)
+        loc.configure(config)
         return loc
     }
 
@@ -107,41 +106,74 @@ final class LocalizerTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
 
-    // MARK: OTA end-to-end (through Localizer, mock fetcher)
+    // MARK: Applying consumer-fetched bundles
 
-    func testCheckForUpdatesSwapsTableLive() async {
-        let base = URL(string: "https://cdn.example.com/i18n/")!
-        let payload = TestSupport.data(#"{"auth":{"login":"Signed in (OTA)"}}"#)
-        let fetcher = MockFetcher([.success(.updated(data: payload, etag: "v9"))])
-        let loc = makeLocalizer(default: "en", fallback: "en", remoteURL: base, fetcher: fetcher)
-
+    func testApplyBundleSwapsActiveTableLive() throws {
+        let loc = makeLocalizer(default: "en", fallback: "en")
         XCTAssertEqual(loc.t("auth.login"), "Log in")
-        let result = await loc.checkForUpdates()
-        XCTAssertEqual(result, .updated(language: "en"))
-        XCTAssertEqual(loc.t("auth.login"), "Signed in (OTA)")
+
+        try loc.applyBundle(TestSupport.data(#"{"auth":{"login":"Signed in (applied)"}}"#), for: "en")
+        XCTAssertEqual(loc.t("auth.login"), "Signed in (applied)")
     }
 
-    func testCheckForUpdatesFailureKeepsLastGood() async {
-        let base = URL(string: "https://cdn.example.com/i18n/")!
-        let fetcher = MockFetcher([.failure(OTAError.httpStatus(503))])
-        let loc = makeLocalizer(default: "en", fallback: "en", remoteURL: base, fetcher: fetcher)
+    func testApplyBundlePostsNotification() throws {
+        let loc = makeLocalizer(default: "en", fallback: "en")
+        let expectation = XCTNSNotificationExpectation(name: .aksaraDidChange, object: loc)
+        try loc.applyBundle(TestSupport.data(#"{"auth":{"login":"X"}}"#), for: "en")
+        wait(for: [expectation], timeout: 1.0)
+    }
 
-        let result = await loc.checkForUpdates()
-        XCTAssertEqual(result, .failed)
+    func testApplyBundleParseFailureKeepsLastGood() {
+        let loc = makeLocalizer(default: "en", fallback: "en")
+        XCTAssertThrowsError(try loc.applyBundle(TestSupport.data("garbage {"), for: "en"))
         XCTAssertEqual(loc.t("auth.login"), "Log in") // unchanged
     }
 
-    func testCheckForUpdatesSkippedWithoutRemote() async {
-        let loc = makeLocalizer() // no remoteURL
-        let result = await loc.checkForUpdates()
-        XCTAssertEqual(result, .skipped)
+    func testApplyBundleForInactiveLanguageIsCachedThenUsedOnSetLanguage() throws {
+        let loc = makeLocalizer(default: "en", fallback: "en")
+        // Applying "de" (not active, not fallback) shouldn't change the visible table…
+        try loc.applyBundle(TestSupport.data(#"{"auth":{"login":"Anmelden"}}"#), for: "de")
+        XCTAssertEqual(loc.currentLanguage, "en")
+        XCTAssertEqual(loc.t("auth.login"), "Log in")
+        // …but switching to it picks up the cached bundle.
+        loc.setLanguage("de")
+        XCTAssertEqual(loc.t("auth.login"), "Anmelden")
     }
 
-    func testCachedRemoteBundlePreferredOverBundledOnConfigure() {
-        // Pre-seed the cache as if a previous OTA landed, then configure fresh.
+    func testUpdateUsesConsumerSuppliedFetch() async throws {
+        let loc = makeLocalizer(default: "en", fallback: "en")
+        try await loc.update(for: "en") { _ in
+            TestSupport.data(#"{"auth":{"login":"Fetched by consumer"}}"#)
+        }
+        XCTAssertEqual(loc.t("auth.login"), "Fetched by consumer")
+    }
+
+    func testApplyBundleBeforeConfigureThrows() {
+        let loc = Localizer()
+        XCTAssertThrowsError(try loc.applyBundle(TestSupport.data("{}"), for: "en")) { error in
+            XCTAssertEqual(error as? AksaraError, .notConfigured)
+        }
+    }
+
+    // MARK: Custom parser (consumer-defined JSON model)
+
+    func testCustomParserFormat() throws {
+        let loc = makeLocalizer(default: "en", fallback: "en", parser: ListParser())
+        try loc.applyBundle(
+            TestSupport.data(#"{"items":[{"id":"auth.login","text":"Signed in (custom)"}]}"#),
+            for: "en"
+        )
+        XCTAssertEqual(loc.t("auth.login"), "Signed in (custom)")
+    }
+
+    // MARK: Warm-start cache
+
+    func testCachedBundlePreferredOverBundledOnConfigure() {
+        // Pre-seed the cache as if a bundle was applied previously, then configure fresh.
         let tempDir = TestSupport.makeTempDir()
-        let cache = DiskCache(directory: tempDir)
-        cache.saveBundle(TestSupport.data(#"{"auth":{"login":"From cache"}}"#), etag: "v1", language: "en")
+        DiskCache(directory: tempDir).saveBundle(
+            TestSupport.data(#"{"auth":{"login":"From cache"}}"#), language: "en"
+        )
 
         let loc = Localizer()
         loc.configure(LocalizationConfig(
