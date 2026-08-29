@@ -30,7 +30,7 @@ kotlin {
 
 dependencies {
     api(project(":aksara-core"))
-    implementation(platform("androidx.compose:compose-bom:2024.09.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
     implementation("androidx.compose.runtime:runtime")
 }
 
