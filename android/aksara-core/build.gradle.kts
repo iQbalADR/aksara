@@ -10,7 +10,7 @@ kotlin {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
 
     testImplementation(kotlin("test-junit"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
